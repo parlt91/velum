@@ -1,0 +1,20 @@
+= form_for :mirror, method: :post, html: { class: "mirror-form" } do |f|
+  .form-group
+    = f.label :registry_id, "Mirror of"
+    = f.select :registry_id, DockerRegistry.all.collect { |r| [r.name, r.id] }, { include_blank: true }, class: "form-control", required: true
+  .form-group
+    = f.label :name
+    = f.text_field :name, class: "form-control", required: true
+  .form-group.form-group-url
+    = f.label :url, "URL"
+    = f.text_field :url, class: "form-control url", required: true
+    span.help-block.invalid-format.hide This is not a valid URL. Please try something like https://registry.local
+    span.help-block.invalid-insecure.hide Security warning: You are using an insecure mirror address for a secure remote registry
+  .form-group.form-group-certificate.hide
+    = f.label :certificate
+    p Use this option to provide the self-signed certificate used by the mirror.
+    = f.text_area :certificate, class: "form-control"
+
+  .form-actions.clearfix
+    = f.submit "Save", class: "btn btn-primary action"
+    = link_to "Cancel", settings_mirrors_path, class: "btn btn-default action"

@@ -1,0 +1,42 @@
+header.settings-content-header.clearfix
+  .title.pull-left
+    h2 DockerHub registry details
+  .actions.pull-right
+    = link_to settings_registry_path(1), method: "delete", class: "btn btn-danger", data: { confirm: "Are you sure?" } do
+      | Delete
+    = link_to edit_settings_registry_path(1), class: "btn btn-primary" do
+      | Edit
+
+section.registry-details
+  .field
+    .details-label URL
+    .details-value
+      .fa.fa-lock
+      |  https://docker.io
+
+  .field
+    .details-label Certificate
+    .details-value Content here
+
+h3 Mirrors
+
+= link_to "Add Mirror", new_settings_mirror_path, class: "btn btn-primary add-entry-btn"
+
+table.table
+  thead
+    tr
+      th Name
+      th URL
+      th width="110"
+  tbody
+    tr
+      td
+        = link_to "Test", settings_mirror_path(1)
+      td
+        .fa.fa-lock
+        |  https://dockerhub.local.lan:5000
+      td.actions
+        = link_to edit_settings_mirror_path(1), class: "btn btn-default" do
+          .fa.fa-pencil
+        = link_to settings_mirror_path(1), method: "delete", class: "btn btn-danger", data: { confirm: "Are you sure?" } do
+          .fa.fa-trash-o
