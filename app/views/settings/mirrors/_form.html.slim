@@ -1,7 +1,11 @@
 = form_for :mirror, method: :post, html: { class: "mirror-form" } do |f|
   .form-group
     = f.label :registry_id, "Mirror of"
-    = f.select :registry_id, DockerRegistry.all.collect { |r| [r.name, r.id] }, { include_blank: true }, class: "form-control", required: true
+    .row
+      .col-xs-4
+        = f.select :registry_id, DockerRegistry.all.collect { |r| [r.name, r.id] }, { include_blank: true }, class: "form-control", required: true
+      .col-xs-8
+        = link_to "Create new registry", new_settings_registry_path, class: "btn btn-primary add-entry-btn"
   .form-group
     = f.label :name
     = f.text_field :name, class: "form-control", required: true
