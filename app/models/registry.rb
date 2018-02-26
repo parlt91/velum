@@ -52,5 +52,22 @@ class Registry < ActiveRecord::Base
       errors
     end
     # rubocop:enable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/AbcSize
+
+    def expand_all
+      {}.tap do |result|
+        Registry.all.each do |registry|
+          result[registry.name] = { certificate: registry.certificate.try(:certificate) }
+          mirrors = RegistryMirror.where(registry_id: registry.id)
+          mirrors.each do |mirror|
+            result[registry.name][:mirrors] ||= []
+            result[registry.name][:mirrors].push(
+              name: mirror.name,
+              url:  mirror.url,
+              certificate: mirror.certificate.try(:certificate)
+            )
+          end
+        end
+      end
+    end
   end
 end

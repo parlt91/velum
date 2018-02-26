@@ -1,4 +1,4 @@
-class SettingsController < ApplicationController
+class SettingsController < ActionController::Base
   layout "settings"
 
   def index
