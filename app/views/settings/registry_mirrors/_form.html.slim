@@ -1,9 +1,9 @@
-= form_for :mirror, method: :post, html: { class: "mirror-form" } do |f|
+= form_for [:settings, @registry_mirror], html: { class: "mirror-form" } do |f|
   .form-group
     = f.label :registry_id, "Mirror of"
     .row
       .col-xs-4
-        = f.select :registry_id, DockerRegistry.all.collect { |r| [r.name, r.id] }, { include_blank: true }, class: "form-control", required: true
+        = f.select :registry_id, selectable_registries, { include_blank: true }, class: "form-control", required: true
       .col-xs-8
         = link_to "Create new registry", new_settings_registry_path, class: "btn btn-primary add-entry-btn"
   .form-group
@@ -21,4 +21,4 @@
 
   .form-actions.clearfix
     = f.submit "Save", class: "btn btn-primary action"
-    = link_to "Cancel", settings_mirrors_path, class: "btn btn-default action"
+    = link_to "Cancel", settings_registry_mirrors_path, class: "btn btn-default action"

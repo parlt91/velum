@@ -11,7 +11,7 @@ describe "Feature: Mirrors settings" do
 
   describe "#index" do
     before do
-      visit settings_mirrors_path
+      visit settings_registry_mirrors_path
     end
 
     it "allows an user to delete a mirror" do
@@ -27,19 +27,19 @@ describe "Feature: Mirrors settings" do
     it "allows an user to go to a mirror's details page" do
       click_link(".mirror_#{mirror.id} .details-link")
 
-      expect(page).to have_current_path(settings_mirror_path(mirror))
+      expect(page).to have_current_path(settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to a mirror's edit page" do
       click_button(".mirror_#{mirror.id} .edit-btn")
 
-      expect(page).to have_current_path(edit_settings_mirror_path(mirror))
+      expect(page).to have_current_path(edit_settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to the new mirror page" do
       click_button(".add-entry-btn")
 
-      expect(page).to have_current_path(new_settings_mirror_path)
+      expect(page).to have_current_path(new_settings_registry_mirror_path)
     end
 
     it "lists all the mirrors grouped by registries" do
@@ -51,7 +51,7 @@ describe "Feature: Mirrors settings" do
 
   describe "#new" do
     before do
-      visit new_settings_mirror_path
+      visit new_settings_registry_mirror_path
     end
 
     it "allows an user to create a mirror (without certificate)" do
@@ -62,7 +62,7 @@ describe "Feature: Mirrors settings" do
       last_mirror = RegistryMirror.last
       expect(page).not_to have_content("Certificate")
       expect(page).to have_content("Mirror was successfully created.")
-      expect(page).to have_current_path(settings_mirror(last_mirror))
+      expect(page).to have_current_path(settings_registry_mirror(last_mirror))
     end
 
     it "allows an user to create a mirror (w/ certificate)" do
@@ -73,7 +73,7 @@ describe "Feature: Mirrors settings" do
 
       last_mirror = RegistryMirror.last
       expect(page).to have_content("Mirror was successfully created.")
-      expect(page).to have_current_path(settings_mirror(last_mirror))
+      expect(page).to have_current_path(settings_registry_mirror(last_mirror))
     end
 
     it "allows an user to go to the new registry page if no registry selected" do
@@ -109,7 +109,7 @@ describe "Feature: Mirrors settings" do
 
   describe "#edit" do
     before do
-      visit edit_settings_mirror_path(mirror)
+      visit edit_settings_registry_mirror_path(mirror)
     end
 
     # it "forbids the user to change registry" do
@@ -157,7 +157,7 @@ describe "Feature: Mirrors settings" do
 
   describe "#show" do
     before do
-      visit settings_mirror_path(mirror)
+      visit settings_registry_mirror_path(mirror)
     end
 
     it "allows an user to delete a mirror" do
@@ -167,13 +167,13 @@ describe "Feature: Mirrors settings" do
 
       expect(page).not_to have_content(mirror.name)
       expect(page).to have_content("Mirror was successfully removed.")
-      expect(page).to have_current_path(settings_mirrors_path)
+      expect(page).to have_current_path(settings_registry_mirrors_path)
     end
 
     it "allows an user to go to a mirror's edit page" do
       click_button(".edit-btn")
 
-      expect(page).to have_current_path(edit_settings_mirror_path(mirror))
+      expect(page).to have_current_path(edit_settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to a registry's details page" do

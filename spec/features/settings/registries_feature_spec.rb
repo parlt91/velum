@@ -62,7 +62,7 @@ describe "Feature: Registries settings" do
       last_registry = Registry.last
       expect(page).not_to have_content("Certificate")
       expect(page).to have_content("Registry was successfully created.")
-      expect(page).to have_current_path(settings_mirror(last_registry))
+      expect(page).to have_current_path(settings_registry_mirror(last_registry))
     end
 
     it "allows an user to create a registry (w/ certificate)" do
@@ -74,7 +74,7 @@ describe "Feature: Registries settings" do
       last_registry = Registry.last
       expect(page).not_to have_content("Certificate")
       expect(page).to have_content("Registry was successfully created.")
-      expect(page).to have_current_path(settings_mirror(last_registry))
+      expect(page).to have_current_path(settings_registry_mirror(last_registry))
     end
 
     it "shows an error message if model validation fails" do
@@ -163,7 +163,7 @@ describe "Feature: Registries settings" do
     it "allows an user to go to the new mirror page" do
       click_button(".add-entry-btn")
 
-      expect(page).to have_current_path(new_settings_mirror_path)
+      expect(page).to have_current_path(new_settings_registry_mirror_path)
     end
 
     it "allows an user to delete a mirror" do
@@ -179,13 +179,13 @@ describe "Feature: Registries settings" do
     it "allows an user to go to a mirror's edit page" do
       click_link(".mirror_#{mirror.id} .edit-btn")
 
-      expect(page).to have_current_path(edit_settings_mirror_path(mirror))
+      expect(page).to have_current_path(edit_settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to a mirror's details page" do
       click_link(".mirror_#{mirror.id} .details-link")
 
-      expect(page).to have_current_path(settings_mirror_path(mirror))
+      expect(page).to have_current_path(settings_registry_mirror_path(mirror))
     end
   end
 end
