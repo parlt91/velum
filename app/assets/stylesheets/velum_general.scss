@@ -35,20 +35,15 @@ dl.side-by-side {
     }
   }
 
-  .btn-logout {
-    border: 1px solid #02AB74;
-    color: #00BF81;
-    margin-top: 12px;
-
-    padding: 6px 12px;
-  }
-
-  .btn-logout:hover {
-    color: #ffffff;
-  }
-
   .btn-table {
     margin-bottom: 5px;
+  }
+
+  table,
+  .table {
+    td, th {
+      vertical-align: middle;
+    }
   }
 
   h1 {

@@ -30,40 +30,44 @@ $velum-navbar-toggle-color: white;
 
   .navbar-brand,
   img {
-      width: 235.5px;
-      height: 60px;
-      padding: 0;
+    width: 235.5px;
+    height: 60px;
+    padding: 0;
   }
 
-  // TODO refactor navbar selectors
-  .navbar-nav a:not(.btn) {
-    color: $velum-header-link-color;
-  }
-
-  .nav > li {
-    &.active > a {
-      border-bottom: 3px solid $velum-menu-item-active-border !important;
-    }
-
-    > a {
-      background-color: transparent;
-    }
-
-    > a:not(.btn):hover,
-    > a:not(.btn):focus {
-      border-bottom: 3px solid $velum-menu-item-border;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .navbar-nav > li > a {
-      padding-top: 20px;
-      padding-bottom: 17px;
-      margin-right: 5px;
-
-      &.btn-logout {
-        padding: 6px 12px;
+  // Main menu (Home, Settings, etc)
+  .navbar-nav-menu {
+    > li {
+      &.active a {
+        border-bottom: 3px solid $velum-menu-item-active-border !important;
       }
+
+      a {
+        color: $velum-header-link-color;
+
+        @media (min-width: 768px) {
+          padding-top: 20px;
+          padding-bottom: 17px;
+          margin-right: 5px;
+        }
+      }
+
+      a:hover,
+      a:focus {
+        border-bottom: 3px solid $velum-menu-item-border;
+      }
+    }
+  }
+
+  // Logout button
+  .btn-logout {
+    border: 1px solid #02AB74;
+    color: #00BF81;
+    margin-top: 12px;
+    padding: 6px 12px;
+
+    &:hover {
+      color: #ffffff;
     }
   }
 }
