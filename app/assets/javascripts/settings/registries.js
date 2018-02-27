@@ -20,10 +20,26 @@
 
   RegistryForm.prototype.events = function () {
     this.$el.on('input', dom.URL_INPUT, this.validate.bind(this));
+    this.$el.on('input', dom.URL_INPUT, this.toggleCertificateField.bind(this));
   }
 
-  RegistryForm.prototype.toggleCertificateField = function (isSecure) {
-    this.$certificateGroup.toggleClass('hide', !isSecure);
+  RegistryForm.prototype.toggleCertificateField = function () {
+    var urlValue = this.$url.val();
+    var isHttps = this.isValidURL(urlValue) &&
+                  urlValue.indexOf('https://') === 0;
+
+    this.$certificateGroup.toggleClass('hide', !isHttps);
+  }
+
+  RegistryForm.prototype.isValidURL = function (urlValue) {
+    try {
+      var url = new URL(urlValue);
+      var isHttps = url.protocol === 'https:';
+
+      return (url.protocol === 'http:' || isHttps) && !!url.host;
+    } catch (error) {
+      return false;
+    }
   }
 
   RegistryForm.prototype.validate = function () {
@@ -35,32 +51,21 @@
 
     this.timeoutId = setTimeout(function () {
       var urlValue = this.$url.val();
-      var valid = true;
-
-      try {
-        var url = new URL(urlValue);
-        var isHttps = url.protocol === 'https:';
-
-        valid = (url.protocol === 'http:' || isHttps) && !!url.host;
-
-        this.toggleCertificateField(isHttps);
-      } catch (error) {
-        valid = false;
-      }
+      var valid = this.isValidURL(urlValue);
 
       if (valid) {
         this.checkInsecure();
       }
 
       // avoid validation when it's empty
-      if (!this.$url.val()) {
+      if (!urlValue) {
         valid = true;
       }
 
       this.$urlGroup.toggleClass('has-error', !valid);
       this.$invalidUrlFormat.toggleClass('hide', valid);
       this.timeoutId = null;
-    }.bind(this), 1500);
+    }.bind(this), 750);
   }
 
   RegistryForm.prototype.clearValidation = function () {
