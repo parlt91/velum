@@ -72,5 +72,11 @@ class Registry < ActiveRecord::Base
       end
       { items: items }
     end
+
+    def grouped_mirrors
+      Registry.all.map do |reg|
+        [reg, reg.registry_mirrors]
+      end
+    end
   end
 end

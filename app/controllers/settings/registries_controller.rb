@@ -18,12 +18,20 @@ class Settings::RegistriesController < SettingsController
 
   def create
     if registry_params[:certificate].present?
-      Certificate.where(certificate: registry_params[:certificate]).first_or_create
+      @cert = Certificate.where(certificate: registry_params[:certificate]).first_or_create
     end
     Registry.create(registry_params.except(:certificate))
 
     respond_to do |format|
       format.html { redirect_to settings_path }
+    end
+  ensure
+    registry = Registry.find_by(name: registry_params[:name])
+    cert = Certificate.find_by(certificate: registry_params[:certificate])
+    CertificateService.where(service_id: registry.id).first_or_initialize.tap do |s|
+      s.certificate_id = cert.id
+      s.service_type = registry.class.name
+      s.save
     end
   end
 
