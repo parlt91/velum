@@ -56,7 +56,7 @@ class Settings::RegistryMirrorsController < SettingsController
       end
     end
 
-    unless @registry.update_attributes(registry_mirror_params.except(:certificate))
+    unless @registry_mirror.update_attributes(registry_mirror_params.except(:certificate))
       errors << "Failed to update registry mirror"
     end
 
