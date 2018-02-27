@@ -23,7 +23,7 @@ class Settings::RegistriesController < SettingsController
       begin
         @registry.save!
 
-        if registry_params[:certificate].present?
+        if certificate_param.present?
           @cert.save!
           CertificateService.create!(service: @registry, certificate: @cert)
         end
@@ -58,8 +58,9 @@ class Settings::RegistriesController < SettingsController
             @cert.save!
             CertificateService.create!(service: @registry, certificate: @cert)
           else
-            @cert.update_attributes!(certificate: registry_params[:certificate])
+            @cert.update_attributes!(certificate: certificate_param)
           end
+        # TODO: check if no one uses the certificate before destroying it
         elsif @registry.certificate.present?
           @registry.certificate.destroy!
         end

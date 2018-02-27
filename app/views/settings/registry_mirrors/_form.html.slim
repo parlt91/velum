@@ -6,15 +6,17 @@
         = f.select :registry_id, selectable_registries, { include_blank: true }, class: "form-control", required: true
       .col-xs-8
         = link_to "Create new registry", new_settings_registry_path, class: "btn btn-primary add-entry-btn"
-  .form-group
+  .form-group class="#{error_class_for(@registry_mirror, :name)}"
     = f.label :name
     = f.text_field :name, class: "form-control", required: true
-  .form-group.form-group-url
+    = error_messages_for(@registry_mirror, :name)
+  .form-group.form-group-url class="#{error_class_for(@registry_mirror, :url)}"
     = f.label :url, "URL"
     = f.text_field :url, class: "form-control url", required: true
+    = error_messages_for(@registry_mirror, :url)
     span.help-block.invalid-format.hide This is not a valid URL. Please try something like https://registry.local
     span.help-block.invalid-insecure.hide Security warning: You are using an insecure mirror address for a secure remote registry
-  .form-group.form-group-certificate class="#{'hide' unless is_url_secure?(@registry.url)}"
+  .form-group.form-group-certificate class="#{'hide' unless is_url_secure?(@registry_mirror.url)}"
     = f.label :certificate
     p Use this option to provide the self-signed certificate used by the mirror.
     = f.text_area :certificate, class: "form-control", value: @cert.certificate

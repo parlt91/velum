@@ -7,73 +7,86 @@ class Settings::RegistryMirrorsController < SettingsController
 
   def new
     @registry_mirror = RegistryMirror.new
+    @cert = Certificate.new
   end
 
   def create
-    @registry_mirror = RegistryMirror.new(registry_mirror_params.except(:certificate))
+    @registry = Registry.find(registry_mirror_params[:registry_id])
+    @registry_mirror = @registry.registry_mirrors.build(registry_mirror_params.except(:certificate, :registry_id))
+    @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
 
-    if registry_mirror_params[:certificate].present?
-      Certificate.where(certificate: registry_mirror_params[:certificate]).first_or_create
+    ActiveRecord::Base.transaction do
+      begin
+        @registry_mirror.save!
+
+        if certificate_param.present?
+          @cert.save!
+          CertificateService.create!(service: @registry_mirror, certificate: @cert)
+        end
+
+        @created = true
+      rescue
+        raise ActiveRecord::Rollback
+      end
     end
 
-    if @registry_mirror.save
+    if @created
       redirect_to [:settings, @registry_mirror], notice: "Mirror was successfully created."
     else
       render action: :new
     end
-  ensure
-    cert = Certificate.find_by(certificate: registry_mirror_params[:certificate])
-    return unless cert
-    CertificateService.where(service_id: @registry_mirror.id).first_or_initialize.tap do |s|
-      s.certificate_id = cert.id
-      s.service_type = @registry_mirror.class.name
-      s.save
-    end
+  end
+
+  def edit
+    @cert = @registry_mirror.certificate || Certificate.new
   end
 
   def update
-    errors = []
+    @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
 
-    if registry_mirror_params[:certificate].present?
-      cert = Certificate.where(certificate: registry_mirror_params[:certificate]).first_or_create
-      # it could be that a certificate is not yet created, so we need to create the service
-      CertificateService.where(certificate_id: cert.id).first_or_initialize.tap do |s|
-        s.service_id = @registry_mirror.id
-        s.service_type = @registry_mirror.class.name
-        s.save
-      end
-      unless cert.update_attributes(registry_mirror_params.except(:url, :name, :registry_id))
-        errors << "Failed to update certificate"
+    ActiveRecord::Base.transaction do
+      begin
+        @registry_mirror.update_attributes!(registry_mirror_params.except(:certificate, :registry_id))
+
+        # TODO try to simplify this
+        if certificate_param.present?
+          if @cert.new_record?
+            @cert.save!
+            CertificateService.create!(service: @registry_mirror, certificate: @cert)
+          else
+            @cert.update_attributes!(certificate: certificate_param)
+          end
+        # TODO: check if no one uses the certificate before destroying it
+        elsif @registry_mirror.certificate.present?
+          @registry_mirror.certificate.destroy!
+        end
+
+        @updated = true
+      rescue
+        raise ActiveRecord::Rollback
       end
     end
 
-    unless @registry_mirror.update_attributes(registry_mirror_params.except(:certificate))
-      errors << "Failed to update registry mirror"
-    end
-
-    msg = if errors.present?
-      errors.join(", ")
+    if @updated
+      redirect_to [:settings, @registry_mirror], notice: "Mirror was successfully updated."
     else
-      "Mirror was successfully updated"
-    end
-
-    respond_to do |format|
-      format.html { redirect_to @registry_mirror, notice: msg }
+      render action: :edit
     end
   end
 
   def destroy
     @registry_mirror.destroy
-
-    respond_to do |format|
-      format.html { redirect_to settings_registry_mirrors_path, notice: 'Mirror was successfully removed.' }
-    end
+    redirect_to settings_registry_mirrors_path, notice: 'Mirror was successfully removed.'
   end
 
   private
 
   def set_registry
     @registry_mirror = RegistryMirror.find(params[:id])
+  end
+
+  def certificate_param
+    registry_mirror_params[:certificate].strip if registry_mirror_params[:certificate].present?
   end
 
   def registry_mirror_params

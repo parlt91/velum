@@ -25,7 +25,6 @@ module ApplicationHelper
   end
 
   def error_class_for(model, field)
-    p model.errors
     "has-error" if model.errors[field].present?
   end
 

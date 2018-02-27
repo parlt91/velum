@@ -1,8 +1,13 @@
 require "rails_helper"
 
 # rubocop:disable RSpec/ExampleLength
-describe "Feature: Mirrors settings" do
+describe "Feature: Mirrors settings", js: true do
   let!(:user) { create(:user) }
+  let!(:registry) { create(:registry) }
+  let!(:registry2) { create(:registry) }
+  let!(:mirror) { create(:registry_mirror, registry: registry) }
+  let!(:mirror2) { create(:registry_mirror, registry: registry) }
+  let!(:mirror3) { create(:registry_mirror, registry: registry2) }
 
   before do
     setup_done
@@ -17,7 +22,7 @@ describe "Feature: Mirrors settings" do
     it "allows an user to delete a mirror" do
       expect(page).to have_content(mirror.name)
       accept_alert do
-        click_button(".mirror_#{mirror.id} .delete-btn")
+        find(".mirror_#{mirror.id} .delete-btn").click
       end
 
       expect(page).to have_content("Mirror was successfully removed.")
@@ -25,19 +30,19 @@ describe "Feature: Mirrors settings" do
     end
 
     it "allows an user to go to a mirror's details page" do
-      click_link(".mirror_#{mirror.id} .details-link")
+      click_on(mirror.name)
 
       expect(page).to have_current_path(settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to a mirror's edit page" do
-      click_button(".mirror_#{mirror.id} .edit-btn")
+      find(".mirror_#{mirror.id} .edit-btn").click
 
       expect(page).to have_current_path(edit_settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to the new mirror page" do
-      click_button(".add-entry-btn")
+      click_on("Add Mirror")
 
       expect(page).to have_current_path(new_settings_registry_mirror_path)
     end
@@ -55,6 +60,7 @@ describe "Feature: Mirrors settings" do
     end
 
     it "allows an user to create a mirror (without certificate)" do
+      select registry.name
       fill_in "Name", with: "Mirror"
       fill_in "URL", with: "http://google.com"
       click_button("Save")
@@ -62,28 +68,41 @@ describe "Feature: Mirrors settings" do
       last_mirror = RegistryMirror.last
       expect(page).not_to have_content("Certificate")
       expect(page).to have_content("Mirror was successfully created.")
-      expect(page).to have_current_path(settings_registry_mirror(last_mirror))
+      expect(page).to have_current_path(settings_registry_mirror_path(last_mirror))
     end
 
     it "allows an user to create a mirror (w/ certificate)" do
+      select registry.name
       fill_in "Name", with: "Mirror"
       fill_in "URL", with: "https://google.com"
       fill_in "Certificate", with: "Certificate"
       click_button("Save")
 
       last_mirror = RegistryMirror.last
+      expect(page).to have_content("Certificate")
       expect(page).to have_content("Mirror was successfully created.")
-      expect(page).to have_current_path(settings_registry_mirror(last_mirror))
+      expect(page).to have_current_path(settings_registry_mirror_path(last_mirror))
     end
 
     it "allows an user to go to the new registry page if no registry selected" do
-      click_button(".add-entry-btn")
+      click_on("Create new registry")
 
       expect(page).to have_current_path(new_settings_registry_path)
     end
 
     it "shows an error message if model validation fails" do
-      # TODO
+      select registry.name
+      fill_in "Name", with: mirror.name
+      fill_in "URL", with: mirror.url
+      click_button("Save")
+
+      expect(page).to have_content("Name has already been taken")
+      expect(page).to have_content("Url has already been taken")
+
+      fill_in "URL", with: "invalid url"
+      click_button("Save")
+
+      expect(page).to have_content("Url is not a valid URL")
     end
 
     it "shows an error message if url format is invalid" do
@@ -131,7 +150,17 @@ describe "Feature: Mirrors settings" do
     end
 
     it "shows an error message if model validation fails" do
-      # TODO
+      fill_in "Name", with: mirror2.name
+      fill_in "URL", with: mirror2.url
+      click_button("Save")
+
+      expect(page).to have_content("Name has already been taken")
+      expect(page).to have_content("Url has already been taken")
+
+      fill_in "URL", with: "invalid url"
+      click_button("Save")
+
+      expect(page).to have_content("Url is not a valid URL")
     end
 
     it "shows an error message if url format is invalid" do
@@ -162,7 +191,7 @@ describe "Feature: Mirrors settings" do
 
     it "allows an user to delete a mirror" do
       accept_alert do
-        click_button(".delete-btn")
+        click_on("Delete")
       end
 
       expect(page).not_to have_content(mirror.name)
@@ -171,13 +200,13 @@ describe "Feature: Mirrors settings" do
     end
 
     it "allows an user to go to a mirror's edit page" do
-      click_button(".edit-btn")
+      click_on("Edit")
 
       expect(page).to have_current_path(edit_settings_registry_mirror_path(mirror))
     end
 
     it "allows an user to go to a registry's details page" do
-      click_link(".registry-link")
+      click_link(registry.name)
 
       expect(page).to have_current_path(settings_registry_path(mirror.registry))
     end

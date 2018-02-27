@@ -32,15 +32,15 @@ h3 Mirrors
         th width="110"
     tbody
       - @registry.registry_mirrors.each do |mirror|
-        tr
-          td class="mirror_#{mirror.id}"
+        tr class="mirror_#{mirror.id}"
+          td
             = link_to mirror.name, settings_registry_mirror_path(mirror)
           td
             = display_registry_url(mirror.url)
           td.actions
-            = link_to edit_settings_registry_mirror_path(mirror), class: "btn btn-default" do
+            = link_to edit_settings_registry_mirror_path(mirror), class: "btn btn-default edit-btn" do
               .fa.fa-pencil
-            = link_to settings_registry_mirror_path(mirror), method: "delete", class: "btn btn-danger", data: { confirm: "Are you sure?" } do
+            = link_to settings_registry_mirror_path(mirror), method: "delete", class: "btn btn-danger delete-btn", data: { confirm: "Are you sure?" } do
               .fa.fa-trash-o
 - else
   p No mirrors found
