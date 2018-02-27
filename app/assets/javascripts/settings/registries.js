@@ -4,6 +4,7 @@
     URL_INPUT: '.url',
     URL_INVALID_INSECURE: '.invalid-insecure',
     URL_INVALID_FORMAT: '.invalid-format',
+    INVALID: '.help-block',
     CERTIFICATE_GROUP: '.form-group-certificate',
   };
 
@@ -69,9 +70,8 @@
   }
 
   RegistryForm.prototype.clearValidation = function () {
+    this.$urlGroup.find(dom.INVALID).addClass('hide');
     this.$urlGroup.removeClass('has-error');
-    this.$invalidUrlFormat.addClass('hide');
-    this.$invalidUrlInsecure.addClass('hide');
   }
 
   RegistryForm.prototype.checkInsecure = function () {

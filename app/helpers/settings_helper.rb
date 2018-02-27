@@ -16,10 +16,14 @@ module SettingsHelper
   end
 
   def display_registry_url(url)
-    if url.starts_with?("https")
+    if is_url_secure?(url)
       content_tag(:i, nil, class: "fa fa-lock") + " " + url
     else
       url
     end
+  end
+
+  def is_url_secure?(url)
+    url.starts_with?("https://") unless url.nil?
   end
 end

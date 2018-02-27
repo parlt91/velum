@@ -1,10 +1,8 @@
 class Settings::RegistryMirrorsController < SettingsController
+  before_action :set_registry, only: %i[show edit update destroy]
+
   def index
     @grouped_mirrors = Registry.grouped_mirrors
-  end
-
-  def edit
-    @registry_mirror = RegistryMirror.find(params[:id])
   end
 
   def new
@@ -12,35 +10,28 @@ class Settings::RegistryMirrorsController < SettingsController
   end
 
   def create
+    @registry_mirror = RegistryMirror.new(registry_mirror_params.except(:certificate))
+
     if registry_mirror_params[:certificate].present?
       Certificate.where(certificate: registry_mirror_params[:certificate]).first_or_create
     end
-    RegistryMirror.create(registry_mirror_params.except(:certificate))
 
-    respond_to do |format|
-      format.html { redirect_to settings_path }
+    if @registry_mirror.save
+      redirect_to [:settings, @registry_mirror], notice: "Mirror was successfully created."
+    else
+      render action: :new
     end
   ensure
-    mirror = RegistryMirror.find_by(name: registry_mirror_params[:name])
     cert = Certificate.find_by(certificate: registry_mirror_params[:certificate])
     return unless cert
-    CertificateService.where(service_id: mirror.id).first_or_initialize.tap do |s|
+    CertificateService.where(service_id: @registry_mirror.id).first_or_initialize.tap do |s|
       s.certificate_id = cert.id
-      s.service_type = mirror.class.name
+      s.service_type = @registry_mirror.class.name
       s.save
     end
   end
 
-  def show
-    @registry_mirror = RegistryMirror.find(params[:id])
-
-    respond_to do |format|
-      format.html
-    end
-  end
-
   def update
-    @registry_mirror = RegistryMirror.find(params[:id])
     errors = []
 
     if registry_mirror_params[:certificate].present?
@@ -63,23 +54,27 @@ class Settings::RegistryMirrorsController < SettingsController
     msg = if errors.present?
       errors.join(", ")
     else
-      "Registry Mirror was successfully updated"
+      "Mirror was successfully updated"
     end
 
     respond_to do |format|
-      format.html { redirect_to settings_path, notice: msg }
+      format.html { redirect_to @registry_mirror, notice: msg }
     end
   end
 
   def destroy
-    RegistryMirror.destroy(params[:id])
+    @registry_mirror.destroy
 
     respond_to do |format|
-      format.html { redirect_to settings_path, notice: 'Mirror was successfully removed.' }
+      format.html { redirect_to settings_registry_mirrors_path, notice: 'Mirror was successfully removed.' }
     end
   end
 
   private
+
+  def set_registry
+    @registry_mirror = RegistryMirror.find(params[:id])
+  end
 
   def registry_mirror_params
     params.require(:registry_mirror).permit(:name, :url, :certificate, :registry_id)

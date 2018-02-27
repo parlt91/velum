@@ -23,7 +23,7 @@ html(lang='en')
         .settings-sidebar
           = render partial: "settings/sidebar"
         .col-xs-12.settings-content
-          .alerts-container
+          .alerts-container.clearfix
             = render partial: "shared/notifications"
 
           = yield

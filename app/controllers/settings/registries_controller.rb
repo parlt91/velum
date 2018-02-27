@@ -1,4 +1,6 @@
 class Settings::RegistriesController < SettingsController
+  before_action :set_registry, only: %i[show edit update destroy]
+
   def index
     @registries = Registry.all
 
@@ -8,84 +10,87 @@ class Settings::RegistriesController < SettingsController
     end
   end
 
-  def edit
-    @registry = Registry.find(params[:id])
-  end
-
   def new
     @registry = Registry.new
+    @cert = Certificate.new
   end
 
   def create
-    if registry_params[:certificate].present?
-      @cert = Certificate.where(certificate: registry_params[:certificate]).first_or_create
-    end
-    Registry.create(registry_params.except(:certificate))
+    @registry = Registry.new(registry_params.except(:certificate))
+    @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
 
-    respond_to do |format|
-      format.html { redirect_to settings_path }
+    ActiveRecord::Base.transaction do
+      begin
+        @registry.save!
+
+        if registry_params[:certificate].present?
+          @cert.save!
+          CertificateService.create!(service: @registry, certificate: @cert)
+        end
+
+        @created = true
+      rescue
+        raise ActiveRecord::Rollback
+      end
     end
-  ensure
-    registry = Registry.find_by(name: registry_params[:name])
-    return unless cert
-    cert = Certificate.find_by(certificate: registry_params[:certificate])
-    CertificateService.where(service_id: registry.id).first_or_initialize.tap do |s|
-      s.certificate_id = cert.id
-      s.service_type = registry.class.name
-      s.save
+
+    if @created
+      redirect_to [:settings, @registry], notice: "Registry was successfully created."
+    else
+      render action: :new
     end
   end
 
-  def show
-    @registry = Registry.find(params[:id])
-
-    respond_to do |format|
-      format.html
-    end
+  def edit
+    @cert = @registry.certificate || Certificate.new
   end
 
   def update
-    @registry = Registry.find(params[:id])
-    errors = []
+    @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
 
-    if registry_params[:certificate].present?
-      cert = Certificate.where(certificate: registry_params[:certificate]).first_or_create
-      # it could be that a certificate is not yet created, so we need to create the service
-      CertificateService.where(certificate_id: cert.id).first_or_initialize.tap do |s|
-        s.service_id = @registry.id
-        s.service_type = @registry.class.name
-        s.save
-      end
-      unless cert.update_attributes(registry_params.except(:url, :name))
-        errors << "Failed to update certificate"
+    ActiveRecord::Base.transaction do
+      begin
+        @registry.update_attributes!(registry_params.except(:certificate))
+
+        # TODO try to simplify this
+        if certificate_param.present?
+          if @cert.new_record?
+            @cert.save!
+            CertificateService.create!(service: @registry, certificate: @cert)
+          else
+            @cert.update_attributes!(certificate: registry_params[:certificate])
+          end
+        elsif @registry.certificate.present?
+          @registry.certificate.destroy!
+        end
+
+        @updated = true
+      rescue
+        raise ActiveRecord::Rollback
       end
     end
 
-    unless @registry.update_attributes(registry_params.except(:certificate))
-      errors << "Failed to update registry"
-    end
-
-    msg = if errors.present?
-      errors.join(", ")
+    if @updated
+      redirect_to [:settings, @registry], notice: "Registry was successfully updated."
     else
-      "Registry was successfully updated"
-    end
-
-    respond_to do |format|
-      format.html { redirect_to settings_path, notice: msg }
+      render action: :edit
     end
   end
 
   def destroy
-    # do some update calls here
-    Registry.destroy(params[:id])
-
-    respond_to do |format|
-      format.html { redirect_to settings_path, notice: 'Registry was successfully removed.' }
-    end
+    @registry.destroy
+    redirect_to settings_registries_path, notice: 'Registry was successfully removed.'
   end
 
   private
+
+  def set_registry
+    @registry = Registry.find(params[:id])
+  end
+
+  def certificate_param
+    registry_params[:certificate].strip if registry_params[:certificate].present?
+  end
 
   def registry_params
     params.require(:registry).permit(:name, :url, :certificate)

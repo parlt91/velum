@@ -23,4 +23,18 @@ module ApplicationHelper
       "active"
     end
   end
+
+  def error_class_for(model, field)
+    p model.errors
+    "has-error" if model.errors[field].present?
+  end
+
+  def error_messages_for(model, field)
+    messages = model.errors.full_messages_for(field) || []
+    capture do
+      messages.map do |m|
+        concat content_tag(:span, m, class: "help-block")
+      end
+    end
+  end
 end

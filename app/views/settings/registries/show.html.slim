@@ -1,6 +1,6 @@
 header.settings-content-header.clearfix
   .title.pull-left
-    h2 DockerHub registry details
+    h2 #{@registry.name} registry details
   .actions.pull-right
     = link_to settings_registry_path(@registry), method: "delete", class: "btn btn-danger", data: { confirm: "Are you sure?" } do
       | Delete

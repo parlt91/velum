@@ -14,10 +14,10 @@
     = f.text_field :url, class: "form-control url", required: true
     span.help-block.invalid-format.hide This is not a valid URL. Please try something like https://registry.local
     span.help-block.invalid-insecure.hide Security warning: You are using an insecure mirror address for a secure remote registry
-  .form-group.form-group-certificate.hide
+  .form-group.form-group-certificate class="#{'hide' unless is_url_secure?(@registry.url)}"
     = f.label :certificate
     p Use this option to provide the self-signed certificate used by the mirror.
-    = f.text_area :certificate, class: "form-control"
+    = f.text_area :certificate, class: "form-control", value: @cert.certificate
 
   .form-actions.clearfix
     = f.submit "Save", class: "btn btn-primary action"
