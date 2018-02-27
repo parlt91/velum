@@ -23,6 +23,7 @@ class Settings::RegistryMirrorsController < SettingsController
   ensure
     mirror = RegistryMirror.find_by(name: registry_mirror_params[:name])
     cert = Certificate.find_by(certificate: registry_mirror_params[:certificate])
+    return unless cert
     CertificateService.where(service_id: mirror.id).first_or_initialize.tap do |s|
       s.certificate_id = cert.id
       s.service_type = mirror.class.name

@@ -27,6 +27,7 @@ class Settings::RegistriesController < SettingsController
     end
   ensure
     registry = Registry.find_by(name: registry_params[:name])
+    return unless cert
     cert = Certificate.find_by(certificate: registry_params[:certificate])
     CertificateService.where(service_id: registry.id).first_or_initialize.tap do |s|
       s.certificate_id = cert.id
