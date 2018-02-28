@@ -41,6 +41,7 @@ class Settings::RegistryMirrorsController < SettingsController
     @cert = @registry_mirror.certificate || Certificate.new
   end
 
+  # rubocop:disable Metrics/PerceivedComplexity
   def update
     @cert = @registry_mirror.certificate || Certificate.new(certificate: certificate_param)
 
@@ -67,6 +68,7 @@ class Settings::RegistryMirrorsController < SettingsController
       render action: :edit
     end
   end
+  # rubocop:enable Metrics/PerceivedComplexity
 
   def destroy
     @registry_mirror.destroy

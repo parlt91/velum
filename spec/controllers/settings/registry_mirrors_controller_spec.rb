@@ -69,6 +69,7 @@ RSpec.describe Settings::RegistryMirrorsController, type: :controller do
     it "updates a registry mirror" do
       mirror = RegistryMirror.create(name: "reggy_mirror", url: "http://some.url",
                                      registry_id: registry.id)
+
       put :update, id: mirror.id, registry_mirror: update_registry_mirror_params
       expect(RegistryMirror.find(mirror.id).name).to eq("updated_reggy_mirror")
     end
@@ -76,34 +77,37 @@ RSpec.describe Settings::RegistryMirrorsController, type: :controller do
     it "creates a new certificate" do
       mirror = RegistryMirror.create(name: "reggy_mirror2",
                                      url: "http://some2.other.url", registry_id: registry.id)
-      put :update, id:              mirror.id,
-                   registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "C2" }
+
+      registry_mirror_params = update_registry_mirror_params.tap { |p| p[:certificate] = "C2" }
+      put :update, id: mirror.id, registry_mirror: registry_mirror_params
       expect(mirror.certificate.certificate).to eq("C2")
     end
 
+    # rubocop:disable RSpec/ExampleLength
     it "updates a certificate" do
       mirror = RegistryMirror.create(
-                 update_registry_mirror_params.merge(
-                   registry_id: registry.id,
-                   certificate: Certificate.new(certificate: "C3")
-                 )
-               )
-      put :update, id:              mirror.id,
-                   registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "C4" }
+        update_registry_mirror_params.merge(
+          registry_id: registry.id,
+          certificate: Certificate.new(certificate: "C3")
+        )
+      )
+
+      registry_mirror_params = update_registry_mirror_params.tap { |p| p[:certificate] = "C4" }
+      put :update, id: mirror.id, registry_mirror: registry_mirror_params
       expect(mirror.reload.certificate.certificate).to eq("C4")
     end
 
-    # rubocop:disable RSpec/ExampleLength
     it "drops a certificate" do
       mirror = RegistryMirror.create(
-                 name: "reggy_mirror4",
-                 url: "http://some4.url",
-                 registry_id: registry.id,
-                 certificate: Certificate.new(certificate: "C4")
-               )
+        name:        "reggy_mirror4",
+        url:         "http://some4.url",
+        registry_id: registry.id,
+        certificate: Certificate.new(certificate: "C4")
+      )
+
+      registry_mirror_params = update_registry_mirror_params.except(:certificate)
       expect do
-        put :update, id:              mirror.id,
-                     registry_mirror: update_registry_mirror_params.except(:certificate)
+        put :update, id: mirror.id, registry_mirror: registry_mirror_params
       end.to(change { Certificate.count })
     end
     # rubocop:enable RSpec/ExampleLength
