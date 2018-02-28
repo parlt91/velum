@@ -71,6 +71,25 @@ RSpec.describe Settings::RegistryMirrorsController, type: :controller do
       put :update, id: mirror.id, registry_mirror: update_registry_mirror_params
       expect(RegistryMirror.find(mirror.id).name).to eq("updated_reggy_mirror")
     end
+
+    it "creates a new certificate" do
+      mirror = RegistryMirror.create(name: "reggy_mirror2", url: "http://some2.other.url", registry_id: registry.id)
+      put :update, id: mirror.id, registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "CERT" }
+      expect(mirror.certificate).to eq("CERT")
+    end
+
+    it "updates a certificate" do
+      mirror = RegistryMirror.create(name: "reggy_mirror3", url: "http://some3.url", registry_id: registry.id, certificate: "CERT3")
+      put :update, id: mirror.id, registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "CERT4" }
+      expect(mirror.certificate).to eq("CERT4")
+    end
+
+    it "drops a certificate" do
+      mirror = RegistryMirror.create(name: "reggy_mirror4", url: "http://some4.url", registry_id: registry.id, certificate: "CERT4")
+      expect {
+        put :update, id: mirror.id, registry_mirror: update_registry_mirror_params.except(:certificate)
+      }.to change { Certificate.count }
+    end
   end
 
   describe "DELETE #destroy" do
