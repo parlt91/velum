@@ -1,6 +1,5 @@
 require "rails_helper"
 
-# rubocop:disable RSpec/AnyInstance
 RSpec.describe Settings::RegistriesController, type: :controller do
   before do
     create(:registry)
@@ -9,7 +8,7 @@ RSpec.describe Settings::RegistriesController, type: :controller do
   describe "GET #index" do
     it "populates an array of registries" do
       get :index
-      expect(assigns(:registries)).to_not be_empty
+      expect(assigns(:registries)).not_to be_empty
     end
   end
 
@@ -46,9 +45,9 @@ RSpec.describe Settings::RegistriesController, type: :controller do
 
     context "with invalid attributes" do
       it "does not save the new registry in the database" do
-        expect {
-          post :create, valid_registry_params.tap { |p| p[:registry][:url] = "invalid" }
-        }.to_not change { Registry.count }
+        expect do
+          post(:create, valid_registry_params.tap { |p| p[:registry][:url] = "invalid" })
+        end.not_to(change { Registry.count })
       end
     end
   end
@@ -71,10 +70,9 @@ RSpec.describe Settings::RegistriesController, type: :controller do
 
   describe "DELETE #destroy" do
     it "deletes a Registry" do
-      expect {
+      expect do
         delete :destroy, id: Registry.first
-      }.to change { Registry.count }
+      end.to(change { Registry.count })
     end
   end
 end
-# rubocop:enable RSpec/AnyInstance

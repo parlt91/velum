@@ -1,6 +1,5 @@
 require "rails_helper"
 
-# rubocop:disable RSpec/AnyInstance
 RSpec.describe Settings::RegistryMirrorsController, type: :controller do
   before do
     create(:registry)
@@ -49,9 +48,10 @@ RSpec.describe Settings::RegistryMirrorsController, type: :controller do
 
     context "with invalid attributes" do
       it "does not save the new registry in the database" do
-        expect {
-          post :create, valid_registry_mirror_params.tap { |p| p[:registry_mirror][:url] = "invalid" }
-        }.to_not change { RegistryMirror.count }
+        expect do
+          post(:create,
+               valid_registry_mirror_params.tap { |p| p[:registry_mirror][:url] = "invalid" })
+        end.not_to(change { RegistryMirror.count })
       end
     end
   end
@@ -67,37 +67,45 @@ RSpec.describe Settings::RegistryMirrorsController, type: :controller do
     end
 
     it "updates a registry mirror" do
-      mirror = RegistryMirror.create(name: "reggy_mirror", url: "http://some.url", registry_id: registry.id)
+      mirror = RegistryMirror.create(name: "reggy_mirror", url: "http://some.url",
+                                     registry_id: registry.id)
       put :update, id: mirror.id, registry_mirror: update_registry_mirror_params
       expect(RegistryMirror.find(mirror.id).name).to eq("updated_reggy_mirror")
     end
 
     it "creates a new certificate" do
-      mirror = RegistryMirror.create(name: "reggy_mirror2", url: "http://some2.other.url", registry_id: registry.id)
-      put :update, id: mirror.id, registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "CERT" }
-      expect(mirror.certificate).to eq("CERT")
+      mirror = RegistryMirror.create(name: "reggy_mirror2",
+                                     url: "http://some2.other.url", registry_id: registry.id)
+      put :update, id:              mirror.id,
+                   registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "C2" }
+      expect(mirror.certificate).to eq("C2")
     end
 
     it "updates a certificate" do
-      mirror = RegistryMirror.create(name: "reggy_mirror3", url: "http://some3.url", registry_id: registry.id, certificate: "CERT3")
-      put :update, id: mirror.id, registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "CERT4" }
+      mirror = RegistryMirror.create(name: "reggy_mirror3", url: "http://some3.url",
+                                     registry_id: registry.id, certificate: "C3")
+      put :update, id:              mirror.id,
+                   registry_mirror: update_registry_mirror_params.tap { |p| p[:certificate] = "C4" }
       expect(mirror.certificate).to eq("CERT4")
     end
 
+    # rubocop:disable RSpec/ExampleLength
     it "drops a certificate" do
-      mirror = RegistryMirror.create(name: "reggy_mirror4", url: "http://some4.url", registry_id: registry.id, certificate: "CERT4")
-      expect {
-        put :update, id: mirror.id, registry_mirror: update_registry_mirror_params.except(:certificate)
-      }.to change { Certificate.count }
+      mirror = RegistryMirror.create(name: "reggy_mirror4", url: "http://some4.url",
+                                     registry_id: registry.id, certificate: "C4")
+      expect do
+        put :update, id:              mirror.id,
+                     registry_mirror: update_registry_mirror_params.except(:certificate)
+      end.to(change { Certificate.count })
     end
+    # rubocop:enable RSpec/ExampleLength
   end
 
   describe "DELETE #destroy" do
     it "deletes a RegistryMirror" do
-      expect {
+      expect do
         delete :destroy, id: RegistryMirror.first
-      }.to change { RegistryMirror.count }
+      end.to(change { RegistryMirror.count })
     end
   end
 end
-# rubocop:enable RSpec/AnyInstance
