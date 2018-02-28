@@ -1,5 +1,7 @@
+# Settings::RegistriesController is responsibe to manage all the requests
+# related to the registries feature
 class Settings::RegistriesController < SettingsController
-  before_action :set_registry, only: %i[show edit update destroy]
+  before_action :set_registry, only: [:show, :edit, :update, :destroy]
 
   def index
     @registries = Registry.all
@@ -29,7 +31,7 @@ class Settings::RegistriesController < SettingsController
         end
 
         @created = true
-      rescue
+      rescue StandardError
         raise ActiveRecord::Rollback
       end
     end
@@ -52,7 +54,6 @@ class Settings::RegistriesController < SettingsController
       begin
         @registry.update_attributes!(registry_params.except(:certificate))
 
-        # TODO try to simplify this
         if certificate_param.present?
           if @cert.new_record?
             @cert.save!
@@ -66,7 +67,7 @@ class Settings::RegistriesController < SettingsController
         end
 
         @updated = true
-      rescue
+      rescue StandardError
         raise ActiveRecord::Rollback
       end
     end
@@ -80,7 +81,7 @@ class Settings::RegistriesController < SettingsController
 
   def destroy
     @registry.destroy
-    redirect_to settings_registries_path, notice: 'Registry was successfully removed.'
+    redirect_to settings_registries_path, notice: "Registry was successfully removed."
   end
 
   private

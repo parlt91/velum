@@ -62,9 +62,9 @@ class Registry < ActiveRecord::Base
         mirrors.each do |mirror|
           item[registry.name][:mirrors] ||= []
           item[registry.name][:mirrors].push(
-            id:   mirror.id,
-            name: mirror.name,
-            url:  mirror.url,
+            id:          mirror.id,
+            name:        mirror.name,
+            url:         mirror.url,
             certificate: mirror.certificate.try(:certificate)
           )
         end

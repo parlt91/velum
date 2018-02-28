@@ -1,3 +1,5 @@
+# SettingsController is a generic controller that so far only sets the layout template
+# and redirects the /settings endpoint
 class SettingsController < ActionController::Base
   layout "settings"
 

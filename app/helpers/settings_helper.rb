@@ -1,3 +1,4 @@
+# SettingsHelper contains all the view helpers related/used in registries/mirrors templates.
 module SettingsHelper
   def settings_path?
     request.fullpath.starts_with?(settings_path)
@@ -22,14 +23,14 @@ module SettingsHelper
   end
 
   def display_registry_url(url)
-    if is_url_secure?(url)
+    if url_secure?(url)
       content_tag(:i, nil, class: "fa fa-lock") + " " + url
     else
       url
     end
   end
 
-  def is_url_secure?(url)
+  def url_secure?(url)
     url.starts_with?("https://") unless url.nil?
   end
 end

@@ -1,5 +1,7 @@
+# Settings::RegistryMirrorsController is responsibe to manage all the requests
+# related to the registry mirrors feature
 class Settings::RegistryMirrorsController < SettingsController
-  before_action :set_registry, only: %i[show edit update destroy]
+  before_action :set_registry, only: [:show, :edit, :update, :destroy]
 
   def index
     @grouped_mirrors = Registry.grouped_mirrors
@@ -12,7 +14,8 @@ class Settings::RegistryMirrorsController < SettingsController
 
   def create
     @registry = Registry.find(registry_mirror_params[:registry_id])
-    @registry_mirror = @registry.registry_mirrors.build(registry_mirror_params.except(:certificate, :registry_id))
+    registry_mirror_create_params = registry_mirror_params.except(:certificate, :registry_id)
+    @registry_mirror = @registry.registry_mirrors.build(registry_mirror_create_params)
     @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
 
     ActiveRecord::Base.transaction do
@@ -25,7 +28,7 @@ class Settings::RegistryMirrorsController < SettingsController
         end
 
         @created = true
-      rescue
+      rescue StandardError
         raise ActiveRecord::Rollback
       end
     end
@@ -46,9 +49,9 @@ class Settings::RegistryMirrorsController < SettingsController
 
     ActiveRecord::Base.transaction do
       begin
-        @registry_mirror.update_attributes!(registry_mirror_params.except(:certificate, :registry_id))
+        registry_mirror_update_params = registry_mirror_params.except(:certificate, :registry_id)
+        @registry_mirror.update_attributes!(registry_mirror_update_params)
 
-        # TODO try to simplify this
         if certificate_param.present?
           if @cert.new_record?
             @cert.save!
@@ -62,7 +65,7 @@ class Settings::RegistryMirrorsController < SettingsController
         end
 
         @updated = true
-      rescue
+      rescue StandardError
         raise ActiveRecord::Rollback
       end
     end
@@ -76,7 +79,7 @@ class Settings::RegistryMirrorsController < SettingsController
 
   def destroy
     @registry_mirror.destroy
-    redirect_to settings_registry_mirrors_path, notice: 'Mirror was successfully removed.'
+    redirect_to settings_registry_mirrors_path, notice: "Mirror was successfully removed."
   end
 
   private

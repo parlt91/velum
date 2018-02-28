@@ -108,7 +108,6 @@ describe "Feature: Mirrors settings", js: true do
       select registry.name
       fill_in "Name", with: mirror2.name
       fill_in "URL", with: mirror2.url
-      save_screenshot(nil, full: true)
       click_button("Save")
 
       expect(page).to have_content("Name has already been taken")
@@ -148,11 +147,11 @@ describe "Feature: Mirrors settings", js: true do
     end
 
     it "forbids the user to change registry" do
-      expect(page).to have_css('.registry-select[disabled]')
+      expect(page).to have_css(".registry-select[disabled]")
     end
 
     it "does not show create new registry button" do
-      expect(page).not_to have_content('Create new registry')
+      expect(page).not_to have_content("Create new registry")
     end
 
     it "allows an user to update an existent mirror (secure)" do

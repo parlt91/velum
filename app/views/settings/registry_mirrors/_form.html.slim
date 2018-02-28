@@ -17,7 +17,7 @@
     = error_messages_for(@registry_mirror, :url)
     span.help-block.invalid-format.hide This is not a valid URL. Please try something like https://registry.local
     span.help-block.invalid-insecure.hide Security warning: You are using an insecure mirror address for a secure remote registry
-  .form-group.form-group-certificate class="#{'hide' unless is_url_secure?(@registry_mirror.url)}"
+  .form-group.form-group-certificate class="#{'hide' unless url_secure?(@registry_mirror.url)}"
     = f.label :certificate
     p Use this option to provide the self-signed certificate used by the mirror.
     = f.text_area :certificate, class: "form-control", value: @cert.certificate
