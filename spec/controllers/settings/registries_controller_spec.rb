@@ -16,7 +16,6 @@ RSpec.describe Settings::RegistriesController, type: :controller do
     it "assigns a new Registry to @registry" do
       get :new
       expect(assigns(:registry)).to be_a(Registry)
-      expect(assigns(:cert)).to be_a(Certificate)
     end
 
     it "assigns a new Certificate to @cert" do
@@ -65,6 +64,40 @@ RSpec.describe Settings::RegistriesController, type: :controller do
       reg = Registry.create(name: "reggy", url: "http://some.url")
       put :update, id: reg.id, registry: update_registry_params
       expect(Registry.find(reg.id).name).to eq("updated_reggy")
+    end
+
+    it "creates a new certificate" do
+      reg = Registry.create(name: "reggy2", url: "http://some2.other.url")
+
+      registry_params = update_registry_params.tap { |p| p[:certificate] = "C2" }
+      put :update, id: reg.id, registry: registry_params
+      expect(reg.certificate.certificate).to eq("C2")
+    end
+
+    # # rubocop:disable RSpec/ExampleLength
+    it "updates a certificate" do
+      reg = Registry.create(
+        update_registry_params.merge(
+          certificate: Certificate.new(certificate: "C3")
+        )
+      )
+
+      registry_params = update_registry_params.tap { |p| p[:certificate] = "C4" }
+      put :update, id: reg.id, registry: registry_params
+      expect(reg.reload.certificate.certificate).to eq("C4")
+    end
+
+    it "drops a certificate" do
+      reg = Registry.create(
+        name:        "reggy4",
+        url:         "http://some4.url",
+        certificate: Certificate.new(certificate: "C4")
+      )
+
+      registry_params = update_registry_params.except(:certificate)
+      expect do
+        put :update, id: reg.id, registry: registry_params
+      end.to(change { Certificate.count })
     end
   end
 
