@@ -90,15 +90,31 @@ describe "Feature: Mirrors settings", js: true do
       expect(page).to have_current_path(new_settings_registry_path)
     end
 
+    it "pre-selects registry when coming from registry" do
+      visit settings_registry_path(registry)
+      click_on("Add Mirror")
+
+      expect(page).to have_current_path(new_settings_registry_mirror_path(registry_id: registry.id))
+      expect(page).to have_select(with_selected: registry.name)
+    end
+
+    it "hides create new registry button when selecting option" do
+      expect(page).to have_content("Create new registry")
+      select registry.name
+      expect(page).not_to have_content("Create new registry")
+    end
+
     it "shows an error message if model validation fails" do
       select registry.name
-      fill_in "Name", with: mirror.name
-      fill_in "URL", with: mirror.url
+      fill_in "Name", with: mirror2.name
+      fill_in "URL", with: mirror2.url
+      save_screenshot(nil, full: true)
       click_button("Save")
 
       expect(page).to have_content("Name has already been taken")
       expect(page).to have_content("Url has already been taken")
 
+      select registry.name
       fill_in "URL", with: "invalid url"
       click_button("Save")
 
@@ -131,8 +147,13 @@ describe "Feature: Mirrors settings", js: true do
       visit edit_settings_registry_mirror_path(mirror)
     end
 
-    # it "forbids the user to change registry" do
-    # end
+    it "forbids the user to change registry" do
+      expect(page).to have_css('.registry-select[disabled]')
+    end
+
+    it "does not show create new registry button" do
+      expect(page).not_to have_content('Create new registry')
+    end
 
     it "allows an user to update an existent mirror (secure)" do
       fill_in "URL", with: "https://google.com"

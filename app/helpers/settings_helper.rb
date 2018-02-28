@@ -11,8 +11,14 @@ module SettingsHelper
     request.fullpath.starts_with?(settings_registry_mirrors_path)
   end
 
-  def selectable_registries
-    Registry.all.collect { |r| [r.name, r.id] }
+  def registries_options_for_select
+    registries = Registry.all.collect { |r| [r.name, r.id] }
+
+    if params[:registry_id].present?
+      options_for_select(registries, selected: params[:registry_id])
+    else
+      registries
+    end
   end
 
   def display_registry_url(url)

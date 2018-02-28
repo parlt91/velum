@@ -21,7 +21,7 @@ section.registry-details
 
 h3 Mirrors
 
-= link_to "Add Mirror", new_settings_registry_mirror_path, class: "btn btn-primary add-entry-btn"
+= link_to "Add Mirror", new_settings_registry_mirror_path(registry_id: @registry.id), class: "btn btn-primary add-entry-btn"
 
 - if @registry.registry_mirrors.any?
   table.table

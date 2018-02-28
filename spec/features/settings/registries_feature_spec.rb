@@ -188,7 +188,7 @@ describe "Feature: Registries settings", js: true do
     it "allows an user to go to the new mirror page" do
       click_on("Add Mirror")
 
-      expect(page).to have_current_path(new_settings_registry_mirror_path)
+      expect(page).to have_current_path(new_settings_registry_mirror_path(registry_id: registry.id))
     end
 
     it "allows an user to delete a mirror" do

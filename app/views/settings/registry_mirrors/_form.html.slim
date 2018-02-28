@@ -3,9 +3,10 @@
     = f.label :registry_id, "Mirror of"
     .row
       .col-xs-4
-        = f.select :registry_id, selectable_registries, { include_blank: true }, class: "form-control", required: true
-      .col-xs-8
-        = link_to "Create new registry", new_settings_registry_path, class: "btn btn-primary add-entry-btn"
+        = f.select :registry_id, registries_options_for_select, { include_blank: true }, class: "form-control registry-select", required: true, disabled: !@registry_mirror.new_record?
+      - if @registry_mirror.new_record?
+        .col-xs-8
+          = link_to "Create new registry", new_settings_registry_path, class: "btn btn-primary add-entry-btn hide"
   .form-group class="#{error_class_for(@registry_mirror, :name)}"
     = f.label :name
     = f.text_field :name, class: "form-control", required: true
