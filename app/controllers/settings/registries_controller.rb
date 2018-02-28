@@ -46,7 +46,7 @@ class Settings::RegistriesController < SettingsController
   end
 
   def update
-    @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
+    @cert = @registry.certificate || Certificate.new(certificate: certificate_param)
 
     ActiveRecord::Base.transaction do
       begin

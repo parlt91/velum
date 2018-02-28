@@ -42,7 +42,7 @@ class Settings::RegistryMirrorsController < SettingsController
   end
 
   def update
-    @cert = Certificate.find_or_initialize_by(certificate: certificate_param)
+    @cert = @registry_mirror.certificate || Certificate.new(certificate: certificate_param)
 
     ActiveRecord::Base.transaction do
       begin
