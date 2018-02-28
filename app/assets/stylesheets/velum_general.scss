@@ -39,6 +39,13 @@ dl.side-by-side {
     margin-bottom: 5px;
   }
 
+  .panel-body {
+    > .table,
+    > table {
+      margin-bottom: 0
+    }
+  }
+
   table,
   .table {
     td, th {
