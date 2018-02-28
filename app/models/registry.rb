@@ -53,26 +53,6 @@ class Registry < ActiveRecord::Base
     end
     # rubocop:enable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Metrics/AbcSize
 
-    def expand_all
-      items = Registry.all.map do |registry|
-        item = {}
-        item[:id] = registry.id
-        item[registry.name] = { certificate: registry.certificate.try(:certificate) }
-        mirrors = RegistryMirror.where(registry_id: registry.id)
-        mirrors.each do |mirror|
-          item[registry.name][:mirrors] ||= []
-          item[registry.name][:mirrors].push(
-            id:          mirror.id,
-            name:        mirror.name,
-            url:         mirror.url,
-            certificate: mirror.certificate.try(:certificate)
-          )
-        end
-        item
-      end
-      { items: items }
-    end
-
     def grouped_mirrors
       Registry.all.map do |reg|
         [reg, reg.registry_mirrors]

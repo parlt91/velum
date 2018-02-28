@@ -5,11 +5,6 @@ class Settings::RegistriesController < SettingsController
 
   def index
     @registries = Registry.all
-
-    respond_to do |format|
-      format.html
-      format.json { render json: JSON.pretty_generate(Registry.expand_all) }
-    end
   end
 
   def new
