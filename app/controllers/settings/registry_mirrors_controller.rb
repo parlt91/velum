@@ -22,10 +22,7 @@ class Settings::RegistryMirrorsController < SettingsController
       begin
         @registry_mirror.save!
 
-        if certificate_param.present?
-          @cert.save!
-          CertificateService.create!(service: @registry_mirror, certificate: @cert)
-        end
+        create_or_update_certificate! if certificate_param.present?
 
         @created = true
       rescue StandardError
@@ -53,13 +50,7 @@ class Settings::RegistryMirrorsController < SettingsController
         @registry_mirror.update_attributes!(registry_mirror_update_params)
 
         if certificate_param.present?
-          if @cert.new_record?
-            @cert.save!
-            CertificateService.create!(service: @registry_mirror, certificate: @cert)
-          else
-            @cert.update_attributes!(certificate: certificate_param)
-          end
-        # TODO: check if no one uses the certificate before destroying it
+          create_or_update_certificate!
         elsif @registry_mirror.certificate.present?
           @registry_mirror.certificate.destroy!
         end
@@ -94,5 +85,14 @@ class Settings::RegistryMirrorsController < SettingsController
 
   def registry_mirror_params
     params.require(:registry_mirror).permit(:name, :url, :certificate, :registry_id)
+  end
+
+  def create_or_update_certificate!
+    if @cert.new_record?
+      @cert.save!
+      CertificateService.create!(service: @registry_mirror, certificate: @cert)
+    else
+      @cert.update_attributes!(certificate: certificate_param)
+    end
   end
 end

@@ -5,6 +5,11 @@ class Settings::RegistriesController < SettingsController
 
   def index
     @registries = Registry.all
+
+    respond_to do |format|
+      format.html
+      format.json { render json: JSON.pretty_generate(Registry.expand_all) }
+    end
   end
 
   def new
@@ -19,12 +24,7 @@ class Settings::RegistriesController < SettingsController
     ActiveRecord::Base.transaction do
       begin
         @registry.save!
-
-        if certificate_param.present?
-          @cert.save!
-          CertificateService.create!(service: @registry, certificate: @cert)
-        end
-
+        create_or_update_certificate! if certificate_param.present?
         @created = true
       rescue StandardError
         raise ActiveRecord::Rollback
@@ -50,13 +50,7 @@ class Settings::RegistriesController < SettingsController
         @registry.update_attributes!(registry_params.except(:certificate))
 
         if certificate_param.present?
-          if @cert.new_record?
-            @cert.save!
-            CertificateService.create!(service: @registry, certificate: @cert)
-          else
-            @cert.update_attributes!(certificate: certificate_param)
-          end
-        # TODO: check if no one uses the certificate before destroying it
+          create_or_update_certificate!
         elsif @registry.certificate.present?
           @registry.certificate.destroy!
         end
@@ -91,5 +85,14 @@ class Settings::RegistriesController < SettingsController
 
   def registry_params
     params.require(:registry).permit(:name, :url, :certificate)
+  end
+
+  def create_or_update_certificate!
+    if @cert.new_record?
+      @cert.save!
+      CertificateService.create!(service: @registry, certificate: @cert)
+    else
+      @cert.update_attributes!(certificate: certificate_param)
+    end
   end
 end
