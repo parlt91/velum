@@ -1,7 +1,7 @@
 # Settings::RegistryMirrorsController is responsibe to manage all the requests
 # related to the registry mirrors feature
 class Settings::RegistryMirrorsController < SettingsController
-  before_action :set_registry, only: [:show, :edit, :update, :destroy]
+  before_action :set_registry_mirror, only: [:show, :edit, :update, :destroy]
 
   def index
     @grouped_mirrors = Registry.grouped_mirrors
@@ -77,7 +77,7 @@ class Settings::RegistryMirrorsController < SettingsController
 
   private
 
-  def set_registry
+  def set_registry_mirror
     @registry_mirror = RegistryMirror.find(params[:id])
   end
 
