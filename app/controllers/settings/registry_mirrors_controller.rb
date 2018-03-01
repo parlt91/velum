@@ -33,7 +33,7 @@ class Settings::RegistryMirrorsController < SettingsController
     if @created
       redirect_to [:settings, @registry_mirror], notice: "Mirror was successfully created."
     else
-      render action: :new
+      render action: :new, status: :unprocessable_entity
     end
   end
 
@@ -65,7 +65,7 @@ class Settings::RegistryMirrorsController < SettingsController
     if @updated
       redirect_to [:settings, @registry_mirror], notice: "Mirror was successfully updated."
     else
-      render action: :edit
+      render action: :edit, status: :unprocessable_entity
     end
   end
   # rubocop:enable Metrics/PerceivedComplexity

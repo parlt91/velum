@@ -13,91 +13,139 @@ RSpec.describe Settings::RegistriesController, type: :controller do
   end
 
   describe "GET #new" do
-    it "assigns a new Registry to @registry" do
+    before do
       get :new
-      expect(assigns(:registry)).to be_a(Registry)
+    end
+
+    it "assigns a new Registry to @registry" do
+      expect(assigns(:registry)).to be_a_new(Registry)
     end
 
     it "assigns a new Certificate to @cert" do
-      get :new
-      expect(assigns(:cert)).to be_a(Certificate)
+      expect(assigns(:cert)).to be_a_new(Certificate)
+    end
+  end
+
+  describe "GET #edit" do
+    let!(:certificate) { create(:certificate, certificate: "Cert") }
+    let!(:registry) { create(:registry) }
+    let!(:registry_with_cert) { create(:registry) }
+
+    context "without certificate" do
+      before do
+        get :edit, id: registry.id
+      end
+
+      it "assigns registry to @registry" do
+        expect(assigns(:registry)).not_to be_a_new(Registry)
+      end
+
+      it "assigns a new Certificate to @cert" do
+        expect(assigns(:cert)).to be_a_new(Certificate)
+      end
+    end
+
+    context "with certificate" do
+      before do
+        CertificateService.create!(service: registry_with_cert, certificate: certificate)
+        get :edit, id: registry_with_cert.id
+      end
+
+      it "assigns registry to @registry" do
+        expect(assigns(:registry)).not_to be_a_new(Registry)
+      end
+
+      it "assigns registry's certificate to @cert" do
+        expect(assigns(:cert)).not_to be_a_new(Certificate)
+      end
+    end
+
+    it "return 404 if registry does not exist" do
+      expect do
+        get :edit, id: Registry.last.id + 1
+      end.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 
   describe "POST #create" do
-    let(:valid_registry_params) do
-      {
-        registry: {
-          name:        "reggy",
-          url:         "https://testing.reg.url",
-          certificate: nil
-        }
-      }
-    end
-
-    context "with valid attributes" do
+    context "without certificate" do
       it "saves the new registry in the database" do
-        post :create, valid_registry_params
-        expect(Registry.find_by(name: "reggy")).to be_a(Registry)
+        post :create, registry: { name: "r1", url: "http://local.lan" }
+        registry = Registry.find_by(name: "r1")
+        expect(registry.name).to eq("r1")
+        expect(registry.url).to eq("http://local.lan")
+      end
+
+      it "does not save in db and return unprocessable entity status when invalid" do
+        expect do
+          post :create, registry: { url: "invalid" }
+        end.not_to change(Registry, :count)
+        expect(response).to have_http_status(:unprocessable_entity)
       end
     end
 
-    context "with invalid attributes" do
-      it "does not save the new registry in the database" do
+    context "with certificate" do
+      it "saves the new registry in the database" do
+        post :create, registry: { name: "r1", url: "http://local.lan", certificate: "cert" }
+        registry = Registry.find_by(name: "r1")
+        expect(registry.name).to eq("r1")
+        expect(registry.certificate.certificate).to eq("cert")
+      end
+
+      it "does not save in db and return unprocessable entity status when invalid" do
         expect do
-          post(:create, valid_registry_params.tap { |p| p[:registry][:url] = "invalid" })
-        end.not_to(change { Registry.count })
+          post :create, registry: { name: "", url: "invalid", certificate: "cert" }
+        end.not_to change(Registry, :count)
+        expect(response).to have_http_status(:unprocessable_entity)
       end
     end
   end
 
   describe "PATCH #update" do
-    let(:update_registry_params) do
-      {
-        name:        "updated_reggy",
-        url:         "https://testing.reg.url",
-        certificate: nil
-      }
+    let!(:certificate) { create(:certificate, certificate: "C1") }
+    let!(:registry) { create(:registry) }
+    let!(:registry_with_cert) { create(:registry) }
+
+    before do
+      CertificateService.create!(service: registry_with_cert, certificate: certificate)
     end
 
     it "updates a registry" do
-      reg = Registry.create(name: "reggy", url: "http://some.url")
-      put :update, id: reg.id, registry: update_registry_params
-      expect(Registry.find(reg.id).name).to eq("updated_reggy")
+      registry_params = { name: "updated name", url: registry.url }
+      put :update, id: registry.id, registry: registry_params
+      expect(Registry.find(registry.id).name).to eq("updated name")
     end
 
     it "creates a new certificate" do
-      reg = Registry.create(name: "reggy2", url: "http://some2.other.url")
-
-      registry_params = update_registry_params.tap { |p| p[:certificate] = "C2" }
-      put :update, id: reg.id, registry: registry_params
-      expect(reg.certificate.certificate).to eq("C2")
+      registry_params = { name: registry.name, url: registry.url, certificate: "cert" }
+      put :update, id: registry.id, registry: registry_params
+      expect(registry.certificate.certificate).to eq("cert")
     end
 
-    # # rubocop:disable RSpec/ExampleLength
+    # rubocop:disable RSpec/ExampleLength
     it "updates a certificate" do
-      reg = Registry.create(
-        update_registry_params.merge(
-          certificate: Certificate.new(certificate: "C3")
-        )
-      )
+      registry_params = {
+        name:        registry_with_cert.name,
+        url:         registry_with_cert.url,
+        certificate: "cert"
+      }
 
-      registry_params = update_registry_params.tap { |p| p[:certificate] = "C4" }
-      put :update, id: reg.id, registry: registry_params
-      expect(reg.reload.certificate.certificate).to eq("C4")
+      put :update, id: registry_with_cert.id, registry: registry_params
+      expect(registry_with_cert.reload.certificate.certificate).to eq("cert")
     end
+    # rubocop:enable RSpec/ExampleLength
 
     it "drops a certificate" do
-      reg = Registry.create(
-        name:        "reggy4",
-        url:         "http://some4.url",
-        certificate: Certificate.new(certificate: "C4")
-      )
-
-      registry_params = update_registry_params.except(:certificate)
+      registry_params = { name: registry_with_cert.name, url: registry_with_cert.url }
       expect do
-        put :update, id: reg.id, registry: registry_params
-      end.to(change { Certificate.count })
+        put :update, id: registry_with_cert.id, registry: registry_params
+      end.to change(Certificate, :count).by(-1)
+    end
+
+    it "return unprocessable entity status when invalid" do
+      registry_params = { name: registry.name, url: "invalid" }
+      put :update, id: registry.id, registry: registry_params
+      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 
