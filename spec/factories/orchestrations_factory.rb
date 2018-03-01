@@ -11,4 +11,11 @@ FactoryGirl.define do
       orchestration.class.skip_callback :create, :after, :update_minions
     end
   end
+  factory :update_registries_orchestration, parent: :orchestration do
+    kind "update_registries"
+
+    after(:build) do |orchestration|
+      orchestration.class.skip_callback :create, :after, :update_minions
+    end
+  end
 end

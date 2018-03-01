@@ -33,6 +33,22 @@ describe SaltHandler::OrchestrationTrigger do
                        data: event_data)
   end
 
+  let(:update_registries_orchestration) do
+    event_data = {
+      "fun_args" => ["orch.update-registries", { "orchestration_jid" => "20170706104527757673" }],
+      "jid"      => "20170706104527757673",
+      "return"   => { "retcode" => 0 },
+      "success"  => true,
+      "_stamp"   => "2017-07-06T10:45:54.734096",
+      "fun"      => "runner.state.orchestrate",
+      "user"     => "root"
+    }.to_json
+
+    FactoryGirl.create(:salt_event,
+                       tag:  "salt/run/20170706104527757673/new",
+                       data: event_data)
+  end
+
   describe "process_event" do
     describe "with a bootstrap orchestration" do
       let(:handler) { described_class.new(bootstrap_orchestration) }
@@ -46,6 +62,14 @@ describe SaltHandler::OrchestrationTrigger do
 
       it "creates the orchestration" do
         expect { handler.process_event }.to change { Orchestration.upgrade.count }.from(0).to(1)
+      end
+    end
+    describe "with update-registries orchestration" do
+      let(:handler) { described_class.new(update_registries_orchestration) }
+
+      it "creates the orchestration" do
+        expect { handler.process_event }.to change { Orchestration.update_registries.count }
+          .from(0).to(1)
       end
     end
   end

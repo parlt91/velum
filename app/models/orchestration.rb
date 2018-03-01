@@ -5,7 +5,7 @@ require "velum/salt_orchestration"
 class Orchestration < ApplicationRecord
   class OrchestrationAlreadyRan < StandardError; end
 
-  enum kind: [:bootstrap, :upgrade]
+  enum kind: [:bootstrap, :upgrade, :update_registries]
   enum status: [:in_progress, :succeeded, :failed]
 
   after_create :update_minions
@@ -19,6 +19,8 @@ class Orchestration < ApplicationRecord
                Velum::Salt.orchestrate
              when "upgrade"
                Velum::Salt.update_orchestration
+             when "update_registries"
+               Velum::Salt.update_registries_orchestration
     end
     update_column :jid, job["return"].first["jid"]
     true
@@ -35,6 +37,8 @@ class Orchestration < ApplicationRecord
       Orchestration.bootstrap.last.try(:status) == "failed"
     when :upgrade
       Orchestration.upgrade.last.try(:status) == "failed"
+    when :update_registries
+      Orchestration.update_registries.last.try(:status) == "failed"
     end
   end
 
@@ -49,7 +53,7 @@ class Orchestration < ApplicationRecord
     case kind
     when "bootstrap"
       Minion.mark_pending_bootstrap
-    when "upgrade"
+    when "upgrade", "update_registries"
       Minion.mark_pending_update
     end
   end

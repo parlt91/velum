@@ -44,9 +44,18 @@ describe Velum::Salt do
   end
 
   describe "update orchestration" do
-    it "runs the orchestration in async mode" do
+    it "runs the update orchestration in async mode" do
       VCR.use_cassette("salt/update_orchestrate_async", record: :none) do
         _, hsh = described_class.update_orchestration
+        expect(hsh["return"].count).to eq 1
+      end
+    end
+  end
+
+  describe "update registries orchestration" do
+    it "runs the update-registries orchestration in async mode" do
+      VCR.use_cassette("salt/update_registries_orchestrate_async", record: :none) do
+        _, hsh = described_class.update_registries_orchestration
         expect(hsh["return"].count).to eq 1
       end
     end

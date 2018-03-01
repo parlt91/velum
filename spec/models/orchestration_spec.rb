@@ -4,6 +4,7 @@ describe Orchestration do
 
   let(:orchestration) { FactoryGirl.create :orchestration }
   let(:upgrade_orchestration) { FactoryGirl.create :upgrade_orchestration }
+  let(:update_registries_orchestration) { FactoryGirl.create :update_registries_orchestration }
 
   context "when a bootstrap orchestration is ran" do
     before do
@@ -39,6 +40,26 @@ describe Orchestration do
     it "updates all minions with roles" do
       allow(Minion).to receive :mark_pending_update
       upgrade_orchestration.send :update_minions
+      expect(Minion).to have_received :mark_pending_update
+    end
+  end
+
+  context "when an update-registries orchestration is ran" do
+    before do
+      allow(Velum::Salt).to receive(:update_registries_orchestration).and_return(
+        [nil, { "return" => [{ "jid" => "20170706104527757674" }] }]
+      )
+    end
+
+    it "spawns a new update-registries orchestration" do
+      expect { described_class.run kind: :update_registries }
+        .to(change { described_class.update_registries.count })
+      expect(Velum::Salt).to have_received(:update_registries_orchestration).once
+    end
+
+    it "updates all minions with roles" do
+      allow(Minion).to receive :mark_pending_update
+      update_registries_orchestration.send :update_minions
       expect(Minion).to have_received :mark_pending_update
     end
   end
@@ -121,6 +142,44 @@ describe Orchestration do
 
       it "is retryable" do
         expect(described_class).to be_retryable(kind: :upgrade)
+      end
+    end
+  end
+
+  context "when the registry-update orchestration is retryable" do
+    context "when the last orchestration was successful" do
+      before do
+        FactoryGirl.create :orchestration,
+                           kind:   described_class.kinds[:update_registries],
+                           status: described_class.statuses[:succeeded]
+      end
+
+      it "is not retryable" do
+        expect(described_class).not_to be_retryable(kind: :update_registries)
+      end
+    end
+
+    context "when there is an orchestration ongoing" do
+      before do
+        FactoryGirl.create :orchestration,
+                           kind:   described_class.kinds[:update_registries],
+                           status: described_class.statuses[:in_progress]
+      end
+
+      it "is not retryable" do
+        expect(described_class).not_to be_retryable(kind: :update_registries)
+      end
+    end
+
+    context "when the last orchestration was a failure" do
+      before do
+        FactoryGirl.create :orchestration,
+                           kind:   described_class.kinds[:update_registries],
+                           status: described_class.statuses[:failed]
+      end
+
+      it "is retryable" do
+        expect(described_class).to be_retryable(kind: :update_registries)
       end
     end
   end
